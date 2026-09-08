@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createProofBundle } from "../lib/proofBundle";
-import { anchorProof } from "../lib/api";
+import { anchorProof } from "../lib/chainApi";
 import {
   enqueue,
   getQueue,

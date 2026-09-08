@@ -1,116 +1,80 @@
-import type { ProofBundle } from "./proofBundle";
+export type SubmissionStatus = "in_progress" | "approved" | "rejected";
 
-/// Every call to the backend lives here.
-///
-/// Two rules hold throughout: a failure never blocks the user, and a failure
-/// never silently changes what a proof says. The photo check can be down and
-/// capture still works. Identity verification can be down and the corroboration
-/// still counts, just at anonymous weight.
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3002";
-
-export type PhotoCheck = {
-  ok: boolean;
-  message: string;
-};
-
-export type Verification = {
-  verified: boolean;
-  /// Written to the chain as-is. Empty string means anonymous.
-  verifier: string;
-};
-
-export type AnchorResult = {
-  proofId: number;
-  txHash: string;
-};
-
-/// Asks the model whether the photo plausibly shows the task.
-///
-/// Advisory only. The user can submit against a negative answer, and the result
-/// never enters the signed bundle. An AI that could veto a report would decide
-/// what counts as true in places where nobody else is watching.
-export async function checkPhoto(
-  imageBlob: Blob,
-  taskDescription: string
-): Promise<PhotoCheck> {
-  try {
-    const form = new FormData();
-    form.append("image", imageBlob);
-    form.append("taskDescription", taskDescription);
-
-    const response = await fetch(`${BASE_URL}/api/check-photo`, {
-      method: "POST",
-      body: form,
-    });
-
-    if (!response.ok) throw new Error(String(response.status));
-
-    return (await response.json()) as PhotoCheck;
-  } catch {
-    return { ok: true, message: "" };
-  }
+export interface Submission {
+  id: string;
+  mealType: string;
+  description: string;
+  note: string;
+  hasPdf: boolean;
+  pdfName: string | null;
+  pdfUrl: string | null;
+  photoUrl: string;
+  gps: { lat: number; lng: number } | null;
+  timestamp: string;
+  status: SubmissionStatus;
+  createdAt: string;
 }
 
-/// Asks the identity provider whether this device belongs to a verified person.
-///
-/// Falls back to anonymous rather than failing. Identity raises the weight of a
-/// corroboration; its absence must never remove the ability to give one.
-export async function verifyDevice(deviceKey: string): Promise<Verification> {
-  try {
-    const response = await fetch(`${BASE_URL}/api/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ deviceKey }),
-    });
-
-    if (!response.ok) throw new Error(String(response.status));
-
-    return (await response.json()) as Verification;
-  } catch {
-    return { verified: false, verifier: "" };
-  }
+export interface Profile {
+  name: string;
+  age: number;
+  program: string;
+  location: string;
+  ironLevels: { label: string; date: string | null; value: number }[];
+  healthMetrics: { label: string; value: number; unit: string; range: string; status: "normal" | "low" | "high" }[];
+  recommendedChecks: { label: string; dueDate: string | null; urgent: boolean }[];
+  community: {
+    peopleHelped: number;
+    mealsDistributed: number;
+    familiesNearby: number;
+    approvalRate: number;
+  };
+  weeklyMeals: number[];
 }
 
-/// Hands a signed bundle to the relayer, which pays gas and writes it on chain.
-///
-/// The whole bundle travels, not just the four values the contract stores: the
-/// relayer needs the signature and the fields it covers in order to verify that
-/// the device really produced this, before spending gas on it.
-///
-/// This one is allowed to throw: a failed anchor means the proof is not yet
-/// recorded, and the queue needs to know that so it can retry.
-export async function anchorProof(bundle: ProofBundle): Promise<AnchorResult> {
-  const response = await fetch(`${BASE_URL}/api/proofs`, {
-    method: "POST",
+export interface Dashboard {
+  profile: Profile;
+  latest: Submission | null;
+  history: Submission[];
+  stats: { mealsReceived: number; reportsUploaded: number; programDays: number };
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, init);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error ?? `Request to ${path} failed with ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export function getDashboard() {
+  return request<Dashboard>("/api/dashboard");
+}
+
+export function createSubmission(payload: {
+  mealType: string;
+  note: string;
+  photoFile: File;
+  pdfFile: File | null;
+  gps: { lat: number; lng: number } | null;
+  timestamp: string;
+}) {
+  const form = new FormData();
+  form.set("mealType", payload.mealType);
+  form.set("note", payload.note);
+  form.set("timestamp", payload.timestamp);
+  form.set("gps", JSON.stringify(payload.gps));
+  form.set("photo", payload.photoFile);
+  if (payload.pdfFile) form.set("pdf", payload.pdfFile);
+
+  return request<Submission>("/api/submissions", { method: "POST", body: form });
+}
+
+export function updateSubmissionStatus(id: string, status: SubmissionStatus) {
+  return request<Submission>(`/api/submissions/${id}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(bundle),
+    body: JSON.stringify({ status }),
   });
-
-  if (!response.ok) {
-    throw new Error(`Anchor failed with status ${response.status}`);
-  }
-
-  return (await response.json()) as AnchorResult;
-}
-
-/// Submits a corroboration or a dispute for an existing proof.
-export async function anchorAttestation(params: {
-  proofId: number;
-  deviceKeyHash: `0x${string}`;
-  verifier: string;
-  geohash: string;
-  kind: "attest" | "dispute";
-}): Promise<{ txHash: string }> {
-  const response = await fetch(`${BASE_URL}/api/attestations`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Attestation failed with status ${response.status}`);
-  }
-
-  return (await response.json()) as { txHash: string };
 }

@@ -1,11 +1,10 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { readContract } from "@wagmi/core";
 import { keccak256, stringToHex } from "viem";
 import { wagmiConfig } from "../lib/wagmi";
 import { proofRegistryConfig } from "../lib/contract";
 import { getDevicePublicKey } from "../lib/deviceKey";
-import { anchorAttestation } from "../lib/api";
+import { anchorAttestation } from "../lib/chainApi";
 
 /// Reads proofs and their corroborations straight from the chain.
 ///
@@ -37,9 +36,12 @@ export function useProofs(geohash: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const load = useCallback(async () => {
-    if (!geohash) return;
+  const loading = useRef(false);
 
+  const load = useCallback(async () => {
+    if (!geohash || loading.current) return;
+
+    loading.current = true;
     setIsLoading(true);
     setError("");
 
@@ -66,12 +68,14 @@ export function useProofs(geohash: string) {
     } catch (cause) {
       setError(String(cause));
     } finally {
+      loading.current = false;
       setIsLoading(false);
     }
   }, [geohash]);
 
   useEffect(() => {
-    void load();
+    const timer = setTimeout(() => void load(), 0);
+    return () => clearTimeout(timer);
   }, [load]);
 
   return { proofs, isLoading, error, reload: load };

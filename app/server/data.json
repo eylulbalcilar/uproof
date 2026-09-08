@@ -1,0 +1,274 @@
+{
+  "nextId": 49,
+  "submissions": [
+    {
+      "id": "SUB-0048",
+      "mealType": "Dinner",
+      "description": "fhfgfggf",
+      "note": "fhfgfggf",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "/uploads/photos/1788863306248-59632954.png",
+      "gps": {
+        "lat": 59.33184395952578,
+        "lng": 18.067874089281396
+      },
+      "timestamp": "2026-09-08T10:28:25.046Z",
+      "status": "in_progress",
+      "createdAt": "2026-09-08T10:28:26.251Z"
+    },
+    {
+      "id": "SUB-0047",
+      "mealType": "Lunch",
+      "description": "gjhgss",
+      "note": "gjhgss",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "/uploads/photos/1788862245865-659152047.png",
+      "gps": {
+        "lat": 59.33183072054533,
+        "lng": 18.06787560056717
+      },
+      "timestamp": "2026-09-08T10:10:44.833Z",
+      "status": "in_progress",
+      "createdAt": "2026-09-08T10:10:45.871Z"
+    },
+    {
+      "id": "SUB-0046",
+      "mealType": "Lunch",
+      "description": "Trying that if it is works !",
+      "note": "Trying that if it is works !",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "/uploads/photos/1788859696304-992993522.png",
+      "gps": {
+        "lat": 59.33202738064163,
+        "lng": 18.067974256894118
+      },
+      "timestamp": "2026-09-08T09:28:15.298Z",
+      "status": "in_progress",
+      "createdAt": "2026-09-08T09:28:16.308Z"
+    },
+    {
+      "id": "SUB-0045",
+      "mealType": "Lunch",
+      "description": "Lunch",
+      "note": "",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "/uploads/photos/1788858704071-130925945.png",
+      "gps": {
+        "lat": 59.33188549189108,
+        "lng": 18.067859091978736
+      },
+      "timestamp": "2026-09-08T09:11:41.356Z",
+      "status": "in_progress",
+      "createdAt": "2026-09-08T09:11:44.073Z"
+    },
+    {
+      "id": "SUB-0044",
+      "mealType": "Lunch",
+      "description": "Lunch",
+      "note": "",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "/uploads/photos/1788858679366-722709647.png",
+      "gps": {
+        "lat": 59.3319072666657,
+        "lng": 18.067882801302012
+      },
+      "timestamp": "2026-09-08T09:11:16.605Z",
+      "status": "in_progress",
+      "createdAt": "2026-09-08T09:11:19.369Z"
+    },
+    {
+      "id": "SUB-0043",
+      "mealType": "Dinner",
+      "description": "Dinner",
+      "note": "",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "/uploads/photos/1788858421132-957932764.png",
+      "gps": {
+        "lat": 59.33191333460994,
+        "lng": 18.06792153800935
+      },
+      "timestamp": "2026-09-08T09:06:58.403Z",
+      "status": "in_progress",
+      "createdAt": "2026-09-08T09:07:01.136Z"
+    },
+    {
+      "id": "SUB-0042",
+      "mealType": "Lunch",
+      "description": "Lunch",
+      "note": "",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "/uploads/photos/1788858232644-626502298.png",
+      "gps": {
+        "lat": 59.331901237133124,
+        "lng": 18.067921536712312
+      },
+      "timestamp": "2026-09-08T09:03:50.544Z",
+      "status": "in_progress",
+      "createdAt": "2026-09-08T09:03:52.651Z"
+    },
+    {
+      "id": "SUB-0041",
+      "mealType": "Lunch",
+      "description": "Lentil soup",
+      "note": "",
+      "hasPdf": true,
+      "pdfName": "lentil_soup_labs.pdf",
+      "pdfUrl": null,
+      "photoUrl": "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=700&fit=crop&auto=format",
+      "gps": {
+        "lat": 19.4326,
+        "lng": -99.1332
+      },
+      "timestamp": "2026-09-07T13:10:00.000Z",
+      "status": "approved",
+      "createdAt": "2026-09-07T13:10:00.000Z"
+    },
+    {
+      "id": "SUB-0038",
+      "mealType": "Breakfast",
+      "description": "Iron cereal",
+      "note": "",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "https://images.unsplash.com/photo-1517686748843-bb360cd1c04d?w=600&h=700&fit=crop&auto=format",
+      "gps": {
+        "lat": 19.4326,
+        "lng": -99.1332
+      },
+      "timestamp": "2026-09-05T07:42:00.000Z",
+      "status": "in_progress",
+      "createdAt": "2026-09-05T07:42:00.000Z"
+    },
+    {
+      "id": "SUB-0031",
+      "mealType": "Lunch",
+      "description": "Spinach & beans",
+      "note": "",
+      "hasPdf": true,
+      "pdfName": "spinach_beans_labs.pdf",
+      "pdfUrl": null,
+      "photoUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=700&fit=crop&auto=format",
+      "gps": {
+        "lat": 19.4326,
+        "lng": -99.1332
+      },
+      "timestamp": "2026-09-01T12:30:00.000Z",
+      "status": "approved",
+      "createdAt": "2026-09-01T12:30:00.000Z"
+    },
+    {
+      "id": "SUB-0027",
+      "mealType": "Dinner",
+      "description": "Beef stew",
+      "note": "",
+      "hasPdf": false,
+      "pdfName": null,
+      "pdfUrl": null,
+      "photoUrl": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=700&fit=crop&auto=format",
+      "gps": null,
+      "timestamp": "2026-08-28T19:05:00.000Z",
+      "status": "rejected",
+      "createdAt": "2026-08-28T19:05:00.000Z"
+    }
+  ],
+  "profile": {
+    "name": "Ana Hernández",
+    "age": 8,
+    "program": "Iron Deficiency Program",
+    "location": "Mexico City",
+    "ironLevels": [
+      {
+        "label": "Baseline (Aug 30)",
+        "date": "2026-08-30",
+        "value": 55
+      },
+      {
+        "label": "Now (Sept 7)",
+        "date": "2026-09-07",
+        "value": 73
+      },
+      {
+        "label": "Target",
+        "date": null,
+        "value": 95
+      }
+    ],
+    "healthMetrics": [
+      {
+        "label": "Hemoglobin",
+        "value": 10.8,
+        "unit": "g/dL",
+        "range": "11.5–15.5",
+        "status": "low"
+      },
+      {
+        "label": "Weight",
+        "value": 24.5,
+        "unit": "kg",
+        "range": "22–30",
+        "status": "normal"
+      },
+      {
+        "label": "BMI",
+        "value": 15.2,
+        "unit": "",
+        "range": "14–18",
+        "status": "normal"
+      },
+      {
+        "label": "Vitamin D",
+        "value": 18,
+        "unit": "ng/mL",
+        "range": "20–50",
+        "status": "low"
+      }
+    ],
+    "recommendedChecks": [
+      {
+        "label": "Follow-up blood test (hemoglobin)",
+        "dueDate": "2026-09-14",
+        "urgent": true
+      },
+      {
+        "label": "Vitamin D supplementation review",
+        "dueDate": "2026-09-20",
+        "urgent": false
+      },
+      {
+        "label": "Routine growth check-up",
+        "dueDate": "2026-10-01",
+        "urgent": false
+      }
+    ],
+    "community": {
+      "peopleHelped": 1842,
+      "mealsDistributed": 9320,
+      "familiesNearby": 47,
+      "approvalRate": 94
+    },
+    "weeklyMeals": [
+      1,
+      2,
+      1,
+      3,
+      2,
+      1,
+      2
+    ]
+  }
+}

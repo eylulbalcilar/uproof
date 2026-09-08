@@ -49,6 +49,7 @@ app.use(express.json({ limit: "1mb" }));
 
 type ProofBundle = {
   taskId: string;
+  regionName: string;
   imageHash: Hex;
   geohash: string;
   capturedAt: number;
@@ -139,15 +140,17 @@ app.post("/api/proofs", async (req, res) => {
   try {
     const { signature, ...unsigned } = bundle;
 
-    const hash = await walletClient.writeContract({
+       const hash = await walletClient.writeContract({
       address: REGISTRY_ADDRESS,
       abi: proofRegistryAbi,
       functionName: "submitProof",
       args: [
         bundle.taskId,
-        serialiseBundle(unsigned),
+        bundle.regionName ?? "",
+        bundle.imageHash,
         bundle.geohash,
         keccak256(stringToHex(bundle.deviceKey)),
+        BigInt(bundle.capturedAt),
       ],
     });
 

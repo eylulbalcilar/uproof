@@ -1,6 +1,6 @@
 import { keccak256, toBytes, stringToHex } from "viem";
 import { getDevicePublicKey, signWithDeviceKey } from "./deviceKey";
-import { encodeGeohash } from "./geohash";
+import { encodeGeohash, describeRegion } from "./geohash";
 
 /// Builds and signs the packet that a proof consists of.
 ///
@@ -15,6 +15,10 @@ import { encodeGeohash } from "./geohash";
 
 export type ProofBundle = {
   taskId: string;
+  /// Readable region for the chain record, coarse by design: a city or a
+  /// country, so that a reader can place the report on a map of the world
+  /// rather than a map of the neighbourhood.
+  regionName: string;
   /// keccak256 of the raw photo bytes.
   imageHash: `0x${string}`;
   /// 5-character cell, never exact coordinates.
@@ -32,9 +36,11 @@ type UnsignedBundle = Omit<ProofBundle, "signature">;
 /// What the relayer needs to anchor the bundle on chain.
 export type AnchorPayload = {
   taskId: string;
-  bundleHash: `0x${string}`;
-  geohash: string;
-  deviceKeyHash: `0x${string}`;
+  regionName: string;
+  photoFingerprint: `0x${string}`;
+  locationArea: string;
+  reporterDevice: `0x${string}`;
+  capturedAt: number;
 };
 
 /// Hashes the photo without ever uploading it. The bytes stay on the device;
@@ -44,7 +50,7 @@ export async function hashImage(imageBlob: Blob): Promise<`0x${string}`> {
   return keccak256(new Uint8Array(buffer));
 }
 
-/// Canonical serialisation of a bundle, used for both signing and anchoring.
+/// Canonical serialisation of a bundle, used for signing.
 ///
 /// Field order is fixed and the format is flat: two devices that sign the same
 /// facts must produce the same bytes, or verification becomes a matter of
@@ -76,6 +82,7 @@ export async function createProofBundle(params: {
 
   const unsigned: UnsignedBundle = {
     taskId: params.taskId,
+    regionName: describeRegion(params.latitude, params.longitude),
     imageHash,
     geohash: encodeGeohash(params.latitude, params.longitude),
     capturedAt: params.capturedAt,
@@ -88,16 +95,18 @@ export async function createProofBundle(params: {
   return { ...unsigned, signature };
 }
 
-/// Reduces a signed bundle to the four values the contract stores.
+/// Reduces a signed bundle to the values the contract stores.
 ///
 /// The device key is hashed rather than stored raw: the chain needs to tell
 /// devices apart, not to be able to identify them.
 export function toAnchorPayload(bundle: ProofBundle): AnchorPayload {
   return {
     taskId: bundle.taskId,
-    bundleHash: serialiseBundle(bundle),
-    geohash: bundle.geohash,
-    deviceKeyHash: keccak256(stringToHex(bundle.deviceKey)),
+    regionName: bundle.regionName,
+    photoFingerprint: bundle.imageHash,
+    locationArea: bundle.geohash,
+    reporterDevice: keccak256(stringToHex(bundle.deviceKey)),
+    capturedAt: bundle.capturedAt,
   };
 }
 

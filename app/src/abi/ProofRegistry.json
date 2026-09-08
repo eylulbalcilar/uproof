@@ -25,7 +25,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "deviceKeyHash",
+        "name": "confirmerDevice",
         "type": "bytes32",
         "internalType": "bytes32"
       },
@@ -35,7 +35,7 @@
         "internalType": "string"
       },
       {
-        "name": "geohash",
+        "name": "locationArea",
         "type": "string",
         "internalType": "string"
       }
@@ -53,7 +53,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "deviceKeyHash",
+        "name": "disputerDevice",
         "type": "bytes32",
         "internalType": "bytes32"
       },
@@ -63,7 +63,7 @@
         "internalType": "string"
       },
       {
-        "name": "geohash",
+        "name": "locationArea",
         "type": "string",
         "internalType": "string"
       }
@@ -88,7 +88,7 @@
         "internalType": "struct ProofRegistry.Attestation[]",
         "components": [
           {
-            "name": "deviceKeyHash",
+            "name": "confirmerDevice",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -98,12 +98,12 @@
             "internalType": "string"
           },
           {
-            "name": "geohash",
+            "name": "locationArea",
             "type": "string",
             "internalType": "string"
           },
           {
-            "name": "attestedAt",
+            "name": "confirmedAt",
             "type": "uint64",
             "internalType": "uint64"
           }
@@ -129,7 +129,7 @@
         "internalType": "struct ProofRegistry.Attestation[]",
         "components": [
           {
-            "name": "deviceKeyHash",
+            "name": "confirmerDevice",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -139,12 +139,12 @@
             "internalType": "string"
           },
           {
-            "name": "geohash",
+            "name": "locationArea",
             "type": "string",
             "internalType": "string"
           },
           {
-            "name": "attestedAt",
+            "name": "confirmedAt",
             "type": "uint64",
             "internalType": "uint64"
           }
@@ -180,32 +180,42 @@
             "internalType": "string"
           },
           {
-            "name": "bundleHash",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "geohash",
+            "name": "regionName",
             "type": "string",
             "internalType": "string"
           },
           {
-            "name": "deviceKeyHash",
+            "name": "photoFingerprint",
             "type": "bytes32",
             "internalType": "bytes32"
           },
           {
-            "name": "submittedAt",
+            "name": "locationArea",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "reporterDevice",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "capturedAt",
             "type": "uint64",
             "internalType": "uint64"
           },
           {
-            "name": "attestCount",
+            "name": "recordedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "confirmations",
             "type": "uint32",
             "internalType": "uint32"
           },
           {
-            "name": "disputeCount",
+            "name": "disputes",
             "type": "uint32",
             "internalType": "uint32"
           }
@@ -241,32 +251,42 @@
             "internalType": "string"
           },
           {
-            "name": "bundleHash",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "geohash",
+            "name": "regionName",
             "type": "string",
             "internalType": "string"
           },
           {
-            "name": "deviceKeyHash",
+            "name": "photoFingerprint",
             "type": "bytes32",
             "internalType": "bytes32"
           },
           {
-            "name": "submittedAt",
+            "name": "locationArea",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "reporterDevice",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "capturedAt",
             "type": "uint64",
             "internalType": "uint64"
           },
           {
-            "name": "attestCount",
+            "name": "recordedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "confirmations",
             "type": "uint32",
             "internalType": "uint32"
           },
           {
-            "name": "disputeCount",
+            "name": "disputes",
             "type": "uint32",
             "internalType": "uint32"
           }
@@ -280,7 +300,7 @@
     "name": "getProofsByGeohash",
     "inputs": [
       {
-        "name": "geohash",
+        "name": "locationArea",
         "type": "string",
         "internalType": "string"
       }
@@ -323,7 +343,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "deviceKeyHash",
+        "name": "device",
         "type": "bytes32",
         "internalType": "bytes32"
       }
@@ -412,19 +432,29 @@
         "internalType": "string"
       },
       {
-        "name": "bundleHash",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "geohash",
+        "name": "regionName",
         "type": "string",
         "internalType": "string"
       },
       {
-        "name": "deviceKeyHash",
+        "name": "photoFingerprint",
         "type": "bytes32",
         "internalType": "bytes32"
+      },
+      {
+        "name": "locationArea",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "reporterDevice",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "capturedAt",
+        "type": "uint64",
+        "internalType": "uint64"
       }
     ],
     "outputs": [
@@ -435,80 +465,6 @@
       }
     ],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "event",
-    "name": "Attested",
-    "inputs": [
-      {
-        "name": "proofId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "deviceKeyHash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "verifier",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      },
-      {
-        "name": "geohash",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      },
-      {
-        "name": "attestedAt",
-        "type": "uint64",
-        "indexed": false,
-        "internalType": "uint64"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Disputed",
-    "inputs": [
-      {
-        "name": "proofId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "deviceKeyHash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "verifier",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      },
-      {
-        "name": "geohash",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      },
-      {
-        "name": "disputedAt",
-        "type": "uint64",
-        "indexed": false,
-        "internalType": "uint64"
-      }
-    ],
-    "anonymous": false
   },
   {
     "type": "event",
@@ -531,6 +487,80 @@
   },
   {
     "type": "event",
+    "name": "ProofConfirmed",
+    "inputs": [
+      {
+        "name": "proofId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "confirmerDevice",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "verifier",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "locationArea",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "confirmedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ProofDisputed",
+    "inputs": [
+      {
+        "name": "proofId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "disputerDevice",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "verifier",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "locationArea",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "disputedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "ProofSubmitted",
     "inputs": [
       {
@@ -546,7 +576,7 @@
         "internalType": "bytes32"
       },
       {
-        "name": "geohashHash",
+        "name": "locationAreaHash",
         "type": "bytes32",
         "indexed": true,
         "internalType": "bytes32"
@@ -558,25 +588,37 @@
         "internalType": "string"
       },
       {
-        "name": "geohash",
+        "name": "regionName",
         "type": "string",
         "indexed": false,
         "internalType": "string"
       },
       {
-        "name": "bundleHash",
+        "name": "locationArea",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "photoFingerprint",
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
       },
       {
-        "name": "deviceKeyHash",
+        "name": "reporterDevice",
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
       },
       {
-        "name": "submittedAt",
+        "name": "capturedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "recordedAt",
         "type": "uint64",
         "indexed": false,
         "internalType": "uint64"
@@ -610,12 +652,12 @@
   },
   {
     "type": "error",
-    "name": "EmptyBundleHash",
+    "name": "EmptyDeviceKey",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "EmptyDeviceKey",
+    "name": "EmptyFingerprint",
     "inputs": []
   },
   {

@@ -8,18 +8,15 @@ pragma solidity ^0.8.28;
 ///      1. Submitters have a keypair, not a wallet. Field users cannot fund gas, so a
 ///         backend relayer signs every transaction. `msg.sender` is therefore never the
 ///         author of a proof and carries no authorization meaning beyond "the relayer
-///         accepted this". Identity is expressed by `deviceKeyHash`, the keccak256 of the
-///         WebCrypto public key that signed the bundle off-chain.
+///         accepted this". Identity is expressed by the reporter's device key hash.
 ///
 ///      2. Nothing that could identify a person is stored. Photos never reach the chain,
-///         only their hash. Location is a 5-character geohash (~5km cell), never exact
-///         coordinates.
+///         only their fingerprint. Location is a 5-character geohash (~5km cell) plus a
+///         human-readable region name, never exact coordinates.
 ///
 ///      3. Scoring is deliberately off-chain. Corroboration weights, collusion penalties
 ///         and density-scaled thresholds are policy, and policy changes faster than a
-///         deployed contract should. This contract stores only facts: who acted, when,
-///         from which cell, and under which verifier. Clients derive confidence from the
-///         attestation records and can disagree about the formula without forking data.
+///         deployed contract should. This contract stores only facts.
 ///
 ///      4. Nothing is ever deleted. A contested proof gains a dispute counter; it does
 ///         not disappear. Removal would make the registry as deniable as the reports it
@@ -35,48 +32,45 @@ contract ProofRegistry {
     error ProofNotFound();
     error AlreadyActed();
     error SelfAction();
-    error EmptyBundleHash();
+    error EmptyFingerprint();
     error EmptyDeviceKey();
 
     // -------------------------------------------------------------------------
     // Types
     // -------------------------------------------------------------------------
 
-    /// @param id           1-based identifier. Zero means "does not exist".
-    /// @param taskId       Off-chain task reference, kept as a string so the seed data and
-    ///                     any future U-Report task IDs can be used verbatim. Grouping is
-    ///                     done on the hash, so the string length costs storage but never
-    ///                     lookup time.
-    /// @param bundleHash   keccak256 of the signed ProofBundle (imageHash, geohash,
-    ///                     capturedAt, deviceKey). The device signature itself stays
-    ///                     off-chain; this hash is what makes it verifiable later.
-    /// @param geohash      5-character geohash of the capture location.
-    /// @param submittedAt  Anchoring time, not capture time. Capture time lives inside the
-    ///                     signed bundle. The gap between the two is expected and is what
-    ///                     offline submission looks like.
-    /// @dev `submittedAt`, `attestCount` and `disputeCount` share one storage slot.
     struct Proof {
         uint256 id;
+        /// What was reported, in the words of the task it belongs to.
         string taskId;
-        bytes32 bundleHash;
-        string geohash;
-        bytes32 deviceKeyHash;
-        uint64 submittedAt;
-        uint32 attestCount;
-        uint32 disputeCount;
+        /// Human-readable region, for anyone reading the raw chain record.
+        /// Coarse enough that it identifies nobody: a city or district, never
+        /// a street.
+        string regionName;
+        /// keccak256 of the photo bytes. The photo itself never leaves the device.
+        bytes32 photoFingerprint;
+        /// 5-character geohash, roughly a 5km cell.
+        string locationArea;
+        /// keccak256 of the public key that signed this on the reporter's phone.
+        bytes32 reporterDevice;
+        /// Unix seconds when the shutter fired, signed on the device.
+        uint64 capturedAt;
+        /// Unix seconds when the relayer anchored it. The gap between this and
+        /// capturedAt is what offline submission looks like.
+        uint64 recordedAt;
+        uint32 confirmations;
+        uint32 disputes;
     }
 
     /// @param verifier Empty string for an anonymous corroboration, otherwise the name of
     ///                 the identity provider that vouched for this device. Stored rather
     ///                 than scored so clients can weight providers differently, and so a
     ///                 provider that is later distrusted can be discounted retroactively.
-    /// @param geohash  Cell the corroborator acted from. Enables the same-location
-    ///                 collusion heuristic client-side.
     struct Attestation {
-        bytes32 deviceKeyHash;
+        bytes32 confirmerDevice;
         string verifier;
-        string geohash;
-        uint64 attestedAt;
+        string locationArea;
+        uint64 confirmedAt;
     }
 
     // -------------------------------------------------------------------------
@@ -99,14 +93,14 @@ contract ProofRegistry {
 
     mapping(bytes32 taskIdHash => uint256[]) private _proofsByTask;
 
-    /// @dev Indexed by cell so the attest screen and retroactive confirmation can both ask
-    ///      "what else was reported here" without scanning every proof.
-    mapping(bytes32 geohashHash => uint256[]) private _proofsByGeohash;
+    /// @dev Indexed by cell so the confirmation screen and retroactive confirmation can
+    ///      both ask "what else was reported here" without scanning every proof.
+    mapping(bytes32 locationAreaHash => uint256[]) private _proofsByArea;
 
-    /// @dev One action per device per proof, covering attest and dispute together. A device
-    ///      that has disputed cannot then attest, and the submitter is pre-marked so it
-    ///      cannot corroborate itself.
-    mapping(uint256 proofId => mapping(bytes32 deviceKeyHash => bool)) private _hasActed;
+    /// @dev One action per device per proof, covering confirm and dispute together. A
+    ///      device that has disputed cannot then confirm, and the reporter is pre-marked
+    ///      so it cannot corroborate itself.
+    mapping(uint256 proofId => mapping(bytes32 device => bool)) private _hasActed;
 
     // -------------------------------------------------------------------------
     // Events
@@ -115,27 +109,29 @@ contract ProofRegistry {
     event ProofSubmitted(
         uint256 indexed proofId,
         bytes32 indexed taskIdHash,
-        bytes32 indexed geohashHash,
+        bytes32 indexed locationAreaHash,
         string taskId,
-        string geohash,
-        bytes32 bundleHash,
-        bytes32 deviceKeyHash,
-        uint64 submittedAt
+        string regionName,
+        string locationArea,
+        bytes32 photoFingerprint,
+        bytes32 reporterDevice,
+        uint64 capturedAt,
+        uint64 recordedAt
     );
 
-    event Attested(
+    event ProofConfirmed(
         uint256 indexed proofId,
-        bytes32 indexed deviceKeyHash,
+        bytes32 indexed confirmerDevice,
         string verifier,
-        string geohash,
-        uint64 attestedAt
+        string locationArea,
+        uint64 confirmedAt
     );
 
-    event Disputed(
+    event ProofDisputed(
         uint256 indexed proofId,
-        bytes32 indexed deviceKeyHash,
+        bytes32 indexed disputerDevice,
         string verifier,
-        string geohash,
+        string locationArea,
         uint64 disputedAt
     );
 
@@ -178,8 +174,6 @@ contract ProofRegistry {
         relayer = newRelayer;
     }
 
-    /// @dev Single-step on purpose. A two-step handover is the safer pattern for long-lived
-    ///      ownership and is the change to make before this leaves a testnet.
     function setOwner(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
         emit OwnerUpdated(owner, newOwner);
@@ -190,118 +184,126 @@ contract ProofRegistry {
     // Writes
     // -------------------------------------------------------------------------
 
-    /// @notice Anchors a signed proof bundle.
-    /// @dev The relayer is trusted to have verified the device signature before calling.
-    ///      Verifying secp256r1 signatures on-chain is not practical here, so the contract
-    ///      anchors what it is given and the bundle hash is what makes the relayer's claim
-    ///      auditable after the fact.
-    /// @return proofId The new proof's identifier.
+    /// @notice Anchors a signed proof.
+    /// @dev The relayer verifies the device signature before calling. Verifying secp256r1
+    ///      on-chain is not practical here, so the contract anchors what it is given and
+    ///      the fingerprint is what makes the relayer's claim auditable after the fact.
     function submitProof(
         string calldata taskId,
-        bytes32 bundleHash,
-        string calldata geohash,
-        bytes32 deviceKeyHash
+        string calldata regionName,
+        bytes32 photoFingerprint,
+        string calldata locationArea,
+        bytes32 reporterDevice,
+        uint64 capturedAt
     ) external onlyRelayer returns (uint256 proofId) {
-        if (bundleHash == bytes32(0)) revert EmptyBundleHash();
-        if (deviceKeyHash == bytes32(0)) revert EmptyDeviceKey();
+        if (photoFingerprint == bytes32(0)) revert EmptyFingerprint();
+        if (reporterDevice == bytes32(0)) revert EmptyDeviceKey();
 
         unchecked {
             proofId = ++proofCount;
         }
 
-        uint64 submittedAt = uint64(block.timestamp);
+        uint64 recordedAt = uint64(block.timestamp);
 
         _proofs[proofId] = Proof({
             id: proofId,
             taskId: taskId,
-            bundleHash: bundleHash,
-            geohash: geohash,
-            deviceKeyHash: deviceKeyHash,
-            submittedAt: submittedAt,
-            attestCount: 0,
-            disputeCount: 0
+            regionName: regionName,
+            photoFingerprint: photoFingerprint,
+            locationArea: locationArea,
+            reporterDevice: reporterDevice,
+            capturedAt: capturedAt,
+            recordedAt: recordedAt,
+            confirmations: 0,
+            disputes: 0
         });
 
         bytes32 taskIdHash = keccak256(bytes(taskId));
-        bytes32 geohashHash = keccak256(bytes(geohash));
+        bytes32 locationAreaHash = keccak256(bytes(locationArea));
 
         _proofsByTask[taskIdHash].push(proofId);
-        _proofsByGeohash[geohashHash].push(proofId);
+        _proofsByArea[locationAreaHash].push(proofId);
 
-        // The submitter counts as having acted, which blocks self-corroboration.
-        _hasActed[proofId][deviceKeyHash] = true;
+        // The reporter counts as having acted, which blocks self-corroboration.
+        _hasActed[proofId][reporterDevice] = true;
 
         emit ProofSubmitted(
-            proofId, taskIdHash, geohashHash, taskId, geohash, bundleHash, deviceKeyHash, submittedAt
+            proofId,
+            taskIdHash,
+            locationAreaHash,
+            taskId,
+            regionName,
+            locationArea,
+            photoFingerprint,
+            reporterDevice,
+            capturedAt,
+            recordedAt
         );
     }
 
     /// @notice Records that another device confirms this proof.
-    /// @param verifier Identity provider that vouched for the corroborating device, or an
-    ///                 empty string if the corroboration is anonymous.
     function attest(
         uint256 proofId,
-        bytes32 deviceKeyHash,
+        bytes32 confirmerDevice,
         string calldata verifier,
-        string calldata geohash
+        string calldata locationArea
     ) external onlyRelayer {
-        uint64 actedAt = _registerAction(proofId, deviceKeyHash);
+        uint64 actedAt = _registerAction(proofId, confirmerDevice);
 
         _attestations[proofId].push(
             Attestation({
-                deviceKeyHash: deviceKeyHash,
+                confirmerDevice: confirmerDevice,
                 verifier: verifier,
-                geohash: geohash,
-                attestedAt: actedAt
+                locationArea: locationArea,
+                confirmedAt: actedAt
             })
         );
 
         unchecked {
-            ++_proofs[proofId].attestCount;
+            ++_proofs[proofId].confirmations;
         }
 
-        emit Attested(proofId, deviceKeyHash, verifier, geohash, actedAt);
+        emit ProofConfirmed(proofId, confirmerDevice, verifier, locationArea, actedAt);
     }
 
     /// @notice Records that another device contests this proof. The proof itself survives.
     function dispute(
         uint256 proofId,
-        bytes32 deviceKeyHash,
+        bytes32 disputerDevice,
         string calldata verifier,
-        string calldata geohash
+        string calldata locationArea
     ) external onlyRelayer {
-        uint64 actedAt = _registerAction(proofId, deviceKeyHash);
+        uint64 actedAt = _registerAction(proofId, disputerDevice);
 
         _disputes[proofId].push(
             Attestation({
-                deviceKeyHash: deviceKeyHash,
+                confirmerDevice: disputerDevice,
                 verifier: verifier,
-                geohash: geohash,
-                attestedAt: actedAt
+                locationArea: locationArea,
+                confirmedAt: actedAt
             })
         );
 
         unchecked {
-            ++_proofs[proofId].disputeCount;
+            ++_proofs[proofId].disputes;
         }
 
-        emit Disputed(proofId, deviceKeyHash, verifier, geohash, actedAt);
+        emit ProofDisputed(proofId, disputerDevice, verifier, locationArea, actedAt);
     }
 
-    /// @dev Shared precondition check and bookkeeping for attest and dispute.
-    /// @return actedAt Block timestamp, returned so callers do not read it twice.
-    function _registerAction(uint256 proofId, bytes32 deviceKeyHash)
+    /// @dev Shared precondition check and bookkeeping for confirm and dispute.
+    function _registerAction(uint256 proofId, bytes32 device)
         private
         returns (uint64 actedAt)
     {
-        if (deviceKeyHash == bytes32(0)) revert EmptyDeviceKey();
+        if (device == bytes32(0)) revert EmptyDeviceKey();
 
         Proof storage proof = _proofs[proofId];
         if (proof.id == 0) revert ProofNotFound();
-        if (proof.deviceKeyHash == deviceKeyHash) revert SelfAction();
-        if (_hasActed[proofId][deviceKeyHash]) revert AlreadyActed();
+        if (proof.reporterDevice == device) revert SelfAction();
+        if (_hasActed[proofId][device]) revert AlreadyActed();
 
-        _hasActed[proofId][deviceKeyHash] = true;
+        _hasActed[proofId][device] = true;
 
         actedAt = uint64(block.timestamp);
     }
@@ -328,18 +330,15 @@ contract ProofRegistry {
         }
     }
 
-    /// @dev Returns the full list. Unbounded in principle, but a single task in a single
-    ///      village stays small, and this is a view call. Pagination belongs here if the
-    ///      registry ever holds a national dataset.
     function getProofsByTask(string calldata taskId) external view returns (uint256[] memory) {
         return _proofsByTask[keccak256(bytes(taskId))];
     }
 
-    /// @notice Every proof anchored in a given geohash cell, oldest first.
-    /// @dev Backs both the attest feed and retroactive confirmation: a new proof in a cell
-    ///      is evidence about the older ones already there.
-    function getProofsByGeohash(string calldata geohash) external view returns (uint256[] memory) {
-        return _proofsByGeohash[keccak256(bytes(geohash))];
+    /// @notice Every proof anchored in a given area, oldest first.
+    /// @dev Backs both the confirmation feed and retroactive confirmation: a new proof in
+    ///      an area is evidence about the older ones already there.
+    function getProofsByGeohash(string calldata locationArea) external view returns (uint256[] memory) {
+        return _proofsByArea[keccak256(bytes(locationArea))];
     }
 
     /// @notice Full corroboration records, including verifier and timing, so clients can
@@ -352,10 +351,8 @@ contract ProofRegistry {
         return _disputes[proofId];
     }
 
-    /// @notice Whether a device has already submitted, attested or disputed this proof.
-    /// @dev The UI calls this before showing the corroborate button, so a blocked action
-    ///      is never a failed transaction the user has to understand.
-    function hasActed(uint256 proofId, bytes32 deviceKeyHash) external view returns (bool) {
-        return _hasActed[proofId][deviceKeyHash];
+    /// @notice Whether a device has already reported, confirmed or disputed this proof.
+    function hasActed(uint256 proofId, bytes32 device) external view returns (bool) {
+        return _hasActed[proofId][device];
     }
 }

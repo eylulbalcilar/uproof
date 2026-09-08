@@ -72,3 +72,38 @@ export function neighbouringGeohashes(
 
   return Array.from(cells);
 }
+
+
+/// Turns coordinates into a readable region name for the chain record.
+///
+/// The chain stores this alongside the geohash so that someone reading the raw
+/// record sees "Stockholm, Sweden" rather than only "u6sce". It is deliberately
+/// coarse: a country and a broad area, never a district or a street. A reader
+/// should be able to place the report on a map of the world, not on a map of
+/// the neighbourhood.
+export function describeRegion(latitude: number, longitude: number): string {
+  const regions: Array<{
+    name: string;
+    minLat: number;
+    maxLat: number;
+    minLon: number;
+    maxLon: number;
+  }> = [
+    { name: "Stockholm, Sweden", minLat: 58.9, maxLat: 60.2, minLon: 17.0, maxLon: 19.0 },
+    { name: "Sweden", minLat: 55.0, maxLat: 69.1, minLon: 10.9, maxLon: 24.2 },
+    { name: "Nairobi County, Kenya", minLat: -1.5, maxLat: -1.1, minLon: 36.6, maxLon: 37.1 },
+    { name: "Kenya", minLat: -4.7, maxLat: 5.0, minLon: 33.9, maxLon: 41.9 },
+    { name: "Jordan", minLat: 29.2, maxLat: 33.4, minLon: 34.9, maxLon: 39.3 },
+    { name: "Bangladesh", minLat: 20.7, maxLat: 26.6, minLon: 88.0, maxLon: 92.7 },
+  ];
+
+  const match = regions.find(
+    (region) =>
+      latitude >= region.minLat &&
+      latitude <= region.maxLat &&
+      longitude >= region.minLon &&
+      longitude <= region.maxLon
+  );
+
+  return match?.name ?? "Unspecified region";
+}
