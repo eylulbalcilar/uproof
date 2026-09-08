@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import 'tailwindcss';
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #0a0a0a;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar { display: none; }
+
+@keyframes spin-globe {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.globe-container {
+  perspective: 900px;
+}
+
+.globe-sphere {
+  transform-style: preserve-3d;
+  animation: spin-globe 18s linear infinite;
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
+}

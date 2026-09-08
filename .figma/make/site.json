@@ -1,0 +1,10 @@
+{
+  "description": "Streamline event verification for UNICEF by allowing parents to upload meal photos and track nutritional support progress for children in need.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
