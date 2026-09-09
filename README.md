@@ -1,5 +1,7 @@
 # uproof
 
+Built at FIRSTBLOCK-ATHON 2026, on the UNICEF problem statement.
+
 Corroboration-based proof of field work for humanitarian programs.
 
 Today the organisation that receives the money writes its own report,
@@ -11,17 +13,14 @@ people confirm it.
 Trust does not come from who reported. It comes from how many
 independent people reported the same thing.
 
-Built at FIRSTBLOCK-ATHON 2026, on the UNICEF problem statement.
-
 ## How it works
 
-1. A QR code opens the app. No install, no account, no wallet.
-2. The browser generates a keypair. It identifies the device, not the person.
-3. The photo is hashed on the device. The photo itself never leaves it.
-4. Location becomes a 5km cell. Exact coordinates are never recorded.
-5. The bundle is signed at the moment of capture, offline if needed.
-6. A backend relayer pays gas and anchors it on Base Sepolia.
-7. Other people confirm or dispute it. Each confirmation raises the score.
+1. The browser generates a keypair. It identifies the device, not the person.
+2. The photo is hashed on the device. The photo itself never leaves it.
+3. Location becomes a 5km cell. Exact coordinates are never recorded.
+4. The bundle is signed at the moment of capture, offline if needed.
+5. A backend relayer pays gas and anchors it on Base Sepolia.
+6. Other people confirm or dispute it. Each confirmation raises the score.
 
 ## What the chain stores
 
@@ -70,9 +69,3 @@ Source verified. Every proof is readable without an account.
 - `contracts/` Solidity, Foundry
 - `app/` Vite + React + TypeScript frontend
 - `relayer/` Express service that verifies device signatures and pays gas
-
-## Not in scope for the hackathon
-
-Encrypted IPFS storage, graph-based collusion analysis, ZK attribute
-proofs, passkey-backed device keys, real U-Report integration, mainnet
-deployment.
